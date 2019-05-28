@@ -1,4 +1,3 @@
-[TOC]
 # Introduce
 This is a simple sample to show how the job and cron-job work in the kubernetes.
 
