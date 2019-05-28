@@ -1,0 +1,42 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cron-job-test
+  namespace: job-ns
+spec:
+  # minute hour day-of-the-month month day-of-the-week
+  schedule: "*/1 * * * *"
+  # pod must start to run between the expect time and 15s + the expect time, otherwise it will be failed.
+  startingDeadlineSeconds: 15
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: test-container
+              image: centos
+              command: ["sh" , "-c"]
+              args:
+                 - echo $(date '+%Y-%m-%d %H:%M:%S') $MY_POD_NAME;
+              env:
+                - name: MY_POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+              livenessProbe:
+                exec:
+                  command:
+                    - sh
+                    - -c
+                    - "echo 'ok'"
+                initialDelaySeconds: 10
+                periodSeconds: 3
+              readinessProbe:
+                exec:
+                  command:
+                    - sh
+                    - -c
+                    - "echo 'ok'"
+                initialDelaySeconds: 15
+                periodSeconds: 5
+          restartPolicy: OnFailure

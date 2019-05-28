@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: job-test
+  namespace: job-ns
+spec:
+  # set how many jobs can run at the same time
+  parallelism: 2
+  # set how many jobs need to be completed
+  completions: 5
+  # if the job run over 240 seconds, then the job will be marked failed and terminated no matter how many Pods are created.
+  activeDeadlineSeconds: 240
+  # set retry times before it marked failed
+  backoffLimit: 2
+  template:
+    spec:
+      containers:
+        - name: test-container
+          image: centos
+          command: ["sh" , "-c"]
+          args:
+             - echo $(date '+%Y-%m-%d %H:%M:%S') $MY_POD_NAME;
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "echo 'ok'"
+            initialDelaySeconds: 10
+            periodSeconds: 3
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "echo 'ok'"
+            initialDelaySeconds: 15
+            periodSeconds: 5
+      restartPolicy: OnFailure
